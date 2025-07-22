@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotional AI Character</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f7f7f8;
+            --bg-tertiary: #ececf1;
+            --text-primary: #2d2d2d;
+            --text-secondary: #6b6b6b;
+            --text-muted: #9b9b9b;
+            --border-light: #e5e5e5;
+            --border-medium: #d1d5db;
+            --accent-blue: #10a37f;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #404040;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #808080;
+            --border-light: #404040;
+            --border-medium: #525252;
+            --accent-blue: #10a37f;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header */
+        .header {
+            padding: 32px 32px 16px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-light);
+            position: relative;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-secondary);
+            transform: scale(1.05);
+            color: var(--text-primary);
+        }
+
+        .theme-toggle-icon {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover .theme-toggle-icon {
+            transform: rotate(15deg);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* Main content */
+        .main-content {
+            padding: 40px 32px 32px;
+        }
+
+        /* Character container */
+        .character-stage {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 32px;
+            height: 280px;
+            perspective: 600px;
+        }
+
+        .character-3d {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        .character-3d:hover {
+            transform: scale(1.02) rotateY(2deg);
+        }
+
+        /* Character face - optimized */
+        .character-face {
+            width: 160px;
+            height: 160px;
+            background: linear-gradient(135deg, #fef3c7, #fbbf24);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: var(--shadow-md);
+            transform: translateZ(20px);
+            transition: all 0.3s ease;
+        }
+
+        /* Eyes - simplified */
+        .eyes-container {
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+        }
+
+        .eye-3d {
+            width: 32px;
+            height: 32px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: var(--shadow-sm);
+            transform: translateZ(8px);
+            transition: transform 0.2s ease;
+        }
+
+        .pupil-3d {
+            width: 16px;
+            height: 16px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.2s ease;
+        }
+
+        .pupil-3d::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 5px;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        /* Tears - optimized */
+        .tear-3d {
+            position: absolute;
+            width: 8px;
+            height: 10px;
+            background: var(--accent-blue);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .tear-3d.show {
+            opacity: 1;
+            animation: tearFall 1.5s ease-in-out infinite;
+        }
+
+        @keyframes tearFall {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(8px); }
+        }
+
+        /* Mouth - simplified */
+        .mouth-container {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 30px;
+        }
+
+        .mouth-3d {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .smile-3d {
+            border: 3px solid var(--accent-yellow);
+            border-top: none;
+            border-radius: 0 0 60px 60px;
+        }
+
+        .frown-3d {
+            border: 3px solid var(--accent-red);
+            border-bottom: none;
+            border-radius: 60px 60px 0 0;
+        }
+
+        .mouth-3d.show {
+            opacity: 1;
+        }
+
+        /* Cheeks - optimized */
+        .cheek-3d {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(239, 68, 68, 0.3);
+            border-radius: 50%;
+            top: 70px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cheek-3d.left { left: 15px; }
+        .cheek-3d.right { right: 15px; }
+
+        .cheek-3d.show {
+            opacity: 1;
+        }
+
+        /* Character body - simplified */
+        .character-body {
+            width: 100px;
+            height: 60px;
+            background: linear-gradient(135deg, #a7f3d0, var(--accent-blue));
+            border-radius: 50px 50px 15px 15px;
+            margin-top: -15px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: var(--shadow-sm);
+            transform: translateZ(10px);
+        }
+
+        /* Emotion states - optimized */
+        .character-3d.happy {
+            animation: happyPulse 0.4s ease-out;
+        }
+
+        .character-3d.happy .character-face {
+            background: linear-gradient(135deg, #fef3c7, #fbbf24);
+        }
+
+        @keyframes happyPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .character-3d.sad {
+            animation: sadShake 0.4s ease-out;
+        }
+
+        .character-3d.sad .character-face {
+            background: linear-gradient(135deg, #f3f4f6, #d1d5db);
+        }
+
+        @keyframes sadShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        /* Emotion indicator - ChatGPT style */
+        .emotion-display {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .emotion-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .emotion-badge:hover {
+            background: var(--bg-secondary);
+        }
+
+        .emotion-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .emotion-badge.happy {
+            color: var(--accent-blue);
+            background: rgba(16, 163, 127, 0.1);
+            border-color: rgba(16, 163, 127, 0.2);
+        }
+
+        .emotion-badge.sad {
+            color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Interaction area - ChatGPT inspired */
+        .interaction-panel {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+        }
+
+        .input-container {
+            position: relative;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px 60px 16px 16px;
+            border: none;
+            font-family: inherit;
+            font-size: 14px;
+            background: transparent;
+            color: var(--text-primary);
+            resize: none;
+            min-height: 60px;
+            max-height: 120px;
+            line-height: 1.5;
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-field:focus {
+            outline: none;
+        }
+
+        .send-button {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            width: 36px;
+            height: 36px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            opacity: 0.7;
+        }
+
+        .send-button:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .send-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Response area - ChatGPT style */
+        .response-panel {
+            padding: 16px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+        }
+
+        .response-message {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            line-height: 1.5;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .response-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .response-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .response-message.positive {
+            background: rgba(16, 163, 127, 0.1);
+            color: var(--text-primary);
+        }
+
+        .response-message.positive .response-icon {
+            color: var(--accent-blue);
+        }
+
+        .response-message.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--text-primary);
+        }
+
+        .response-message.negative .response-icon {
+            color: var(--accent-red);
+        }
+
+        .response-message.neutral {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .response-message.neutral .response-icon {
+            color: var(--text-muted);
+        }
+
+        /* Footer - minimal */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 12px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        /* Loading state */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: var(--radius-md);
+            }
+            
+            .header {
+                padding: 24px 20px 12px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .main-content {
+                padding: 32px 20px 24px;
+            }
+            
+            .character-face {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .eyes-container {
+                width: 60px;
+                top: 35px;
+            }
+            
+            .eye-3d {
+                width: 24px;
+                height: 24px;
+            }
+            
+            .pupil-3d {
+                width: 12px;
+                height: 12px;
+            }
+            
+            .character-stage {
+                height: 220px;
+            }
+        }
+
+        /* Reduced motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+                <i data-lucide="sun" class="theme-toggle-icon" id="themeIcon"></i>
+            </button>
+            <h1>Emotional AI</h1>
+            <p>A minimalist character that responds to your emotions</p>
+        </header>
+
+        <main class="main-content">
+            <div class="character-stage">
+                <div class="character-3d" id="character3d">
+                    <div class="character-face" id="characterFace">
+                        <div class="eyes-container">
+                            <div class="eye-3d">
+                                <div class="pupil-3d"></div>
+                                <div class="tear-3d" id="leftTear"></div>
+                            </div>
+                            <div class="eye-3d">
+                                <div class="pupil-3d"></div>
+                                <div class="tear-3d" id="rightTear"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mouth-container">
+                            <div class="mouth-3d smile-3d" id="smile3d"></div>
+                            <div class="mouth-3d frown-3d" id="frown3d"></div>
+                        </div>
+                        
+                        <div class="cheek-3d left" id="leftCheek"></div>
+                        <div class="cheek-3d right" id="rightCheek"></div>
+                    </div>
+                    
+                    <div class="character-body"></div>
+                </div>
+            </div>
+
+            <div class="emotion-display">
+                <div class="emotion-badge neutral" id="emotionBadge">
+                    <i data-lucide="smile" class="emotion-icon" id="emotionIcon"></i>
+                    <span id="emotionText">Neutral</span>
+                </div>
+            </div>
+
+            <div class="interaction-panel">
+                <div class="input-container">
+                    <textarea 
+                        id="userInput" 
+                        class="input-field"
+                        placeholder="Type a message..."
+                        rows="1"
+                    ></textarea>
+                    <button id="sendButton" class="send-button">
+                        <i data-lucide="send" class="send-icon" id="sendIcon"></i>
+                    </button>
+                </div>
+                
+                <div class="response-panel">
+                    <div class="response-message" id="responseMessage">
+                        <i data-lucide="message-circle" class="response-icon" id="responseIcon"></i>
+                        <span id="responseText"></span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+       
+    </div>
+
+    <script>
+        // Optimized Emotional Character Controller
+        class OptimizedEmotionalCharacter {
+            constructor() {
+                this.initializeElements();
+                this.currentEmotion = 'neutral';
+                this.isProcessing = false;
+                this.animationTimeout = null;
+                this.blinkInterval = null;
+                
+                this.initializeEventListeners();
+                this.initializeLucideIcons();
+                this.startBlinking();
+            }
+            
+            initializeElements() {
+                this.character = document.getElementById('character3d');
+                this.characterFace = document.getElementById('characterFace');
+                this.smile = document.getElementById('smile3d');
+                this.frown = document.getElementById('frown3d');
+                this.leftTear = document.getElementById('leftTear');
+                this.rightTear = document.getElementById('rightTear');
+                this.leftCheek = document.getElementById('leftCheek');
+                this.rightCheek = document.getElementById('rightCheek');
+                this.emotionBadge = document.getElementById('emotionBadge');
+                this.emotionIcon = document.getElementById('emotionIcon');
+                this.emotionText = document.getElementById('emotionText');
+                this.responseMessage = document.getElementById('responseMessage');
+                this.responseIcon = document.getElementById('responseIcon');
+                this.responseText = document.getElementById('responseText');
+                this.sendButton = document.getElementById('sendButton');
+                this.sendIcon = document.getElementById('sendIcon');
+                this.userInput = document.getElementById('userInput');
+                this.themeToggle = document.getElementById('themeToggle');
+                this.themeIcon = document.getElementById('themeIcon');
+            }
+            
+            initializeLucideIcons() {
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }
+            
+            initializeEventListeners() {
+                this.sendButton.addEventListener('click', () => this.processInput());
+                this.userInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.processInput();
+                    }
+                });
+                
+                this.userInput.addEventListener('input', () => {
+                    this.updateSendButton();
+                });
+
+                this.themeToggle.addEventListener('click', () => {
+                    this.toggleTheme();
+                });
+
+                // Initialize theme from localStorage or system preference
+                this.initializeTheme();
+            }
+            
+            updateSendButton() {
+                const hasText = this.userInput.value.trim().length > 0;
+                this.sendButton.disabled = !hasText || this.isProcessing;
+            }
+            
+            async processInput() {
+                if (this.isProcessing) return;
+                
+                const input = this.userInput.value.trim();
+                if (!input) return;
+                
+                this.isProcessing = true;
+                this.showProcessingState();
+                
+                // Optimized processing delay
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                const sentiment = this.analyzeSentiment(input);
+                this.reactToSentiment(sentiment);
+                
+                this.userInput.value = '';
+                this.hideProcessingState();
+                this.isProcessing = false;
+                this.updateSendButton();
+            }
+            
+            showProcessingState() {
+                this.sendIcon.setAttribute('data-lucide', 'loader-2');
+                this.sendIcon.style.animation = 'spin 1s linear infinite';
+                this.sendButton.disabled = true;
+                lucide.createIcons();
+            }
+            
+            hideProcessingState() {
+                this.sendIcon.setAttribute('data-lucide', 'send');
+                this.sendIcon.style.animation = '';
+                lucide.createIcons();
+            }
+            
+            analyzeSentiment(text) {
+                const lowerText = text.toLowerCase();
+                
+                // Optimized word lists
+                const positiveWords = [
+                    'love', 'like', 'amazing', 'awesome', 'beautiful', 'wonderful', 'great',
+                    'excellent', 'perfect', 'brilliant', 'incredible', 'outstanding',
+                    'adorable', 'charming', 'delightful', 'pleasant', 'lovely', 'sweet',
+                    'good', 'happy', 'joy', 'smile', 'fun', 'cool', 'nice', 'cute'
+                ];
+                
+                const negativeWords = [
+                    'hate', 'dislike', 'awful', 'terrible', 'horrible', 'ugly', 'stupid',
+                    'dumb', 'bad', 'worst', 'annoying', 'boring', 'sad', 'mean', 'gross'
+                ];
+                
+                let score = 0;
+                
+                positiveWords.forEach(word => {
+                    if (lowerText.includes(word)) score += 1;
+                });
+                
+                negativeWords.forEach(word => {
+                    if (lowerText.includes(word)) score -= 1;
+                });
+                
+                if (score > 0) {
+                    return { type: 'positive', intensity: Math.min(score, 2) };
+                } else if (score < 0) {
+                    return { type: 'negative', intensity: Math.max(score, -2) };
+                } else {
+                    return { type: 'neutral', intensity: 0 };
+                }
+            }
+            
+            reactToSentiment(sentiment) {
+                if (this.animationTimeout) {
+                    clearTimeout(this.animationTimeout);
+                }
+                
+                switch (sentiment.type) {
+                    case 'positive':
+                        this.showHappiness(sentiment.intensity);
+                        this.showResponse(this.getPositiveResponse(), 'positive', 'smile');
+                        break;
+                    case 'negative':
+                        this.showSadness(Math.abs(sentiment.intensity));
+                        this.showResponse(this.getNegativeResponse(), 'negative', 'frown');
+                        break;
+                    default:
+                        this.showNeutral();
+                        this.showResponse(this.getNeutralResponse(), 'neutral', 'message-circle');
+                        break;
+                }
+            }
+            
+            showHappiness(intensity) {
+                this.resetEmotions();
+                this.currentEmotion = 'happy';
+                
+                this.character.classList.add('happy');
+                this.smile.classList.add('show');
+                this.leftCheek.classList.add('show');
+                this.rightCheek.classList.add('show');
+                
+                this.updateEmotionBadge('happy', 'smile', 'Happy');
+                
+                this.animationTimeout = setTimeout(() => this.showNeutral(), 3000);
+            }
+            
+            showSadness(intensity) {
+                this.resetEmotions();
+                this.currentEmotion = 'sad';
+                
+                this.character.classList.add('sad');
+                this.frown.classList.add('show');
+                this.leftTear.classList.add('show');
+                this.rightTear.classList.add('show');
+                
+                this.updateEmotionBadge('sad', 'frown', 'Sad');
+                
+                this.animationTimeout = setTimeout(() => this.showNeutral(), 3000);
+            }
+            
+            showNeutral() {
+                this.resetEmotions();
+                this.currentEmotion = 'neutral';
+                this.updateEmotionBadge('neutral', 'smile', 'Neutral');
+            }
+            
+            resetEmotions() {
+                this.character.classList.remove('happy', 'sad');
+                this.smile.classList.remove('show');
+                this.frown.classList.remove('show');
+                this.leftTear.classList.remove('show');
+                this.rightTear.classList.remove('show');
+                this.leftCheek.classList.remove('show');
+                this.rightCheek.classList.remove('show');
+            }
+            
+            updateEmotionBadge(type, iconName, text) {
+                this.emotionBadge.className = `emotion-badge ${type}`;
+                this.emotionIcon.setAttribute('data-lucide', iconName);
+                this.emotionText.textContent = text;
+                lucide.createIcons();
+            }
+            
+            showResponse(message, type, iconName) {
+                this.responseIcon.setAttribute('data-lucide', iconName);
+                this.responseText.textContent = message;
+                this.responseMessage.className = `response-message ${type}`;
+                
+                setTimeout(() => {
+                    this.responseMessage.classList.add('show');
+                    lucide.createIcons();
+                }, 100);
+                
+                setTimeout(() => {
+                    this.responseMessage.classList.remove('show');
+                }, 3000);
+            }
+            
+            getPositiveResponse() {
+                const responses = [
+                    "Thank you! That made me smile.",
+                    "You're very kind!",
+                    "That's really nice to hear.",
+                    "I appreciate your positivity!"
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+            
+            getNegativeResponse() {
+                const responses = [
+                    "That wasn't very nice...",
+                    "That hurt my feelings.",
+                    "Why would you say that?",
+                    "That made me sad."
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+            
+            getNeutralResponse() {
+                const responses = [
+                    "I'm listening.",
+                    "Tell me more.",
+                    "That's interesting.",
+                    "I'm here to chat."
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+
+            initializeTheme() {
+                // Check for saved theme preference or default to system preference
+                const savedTheme = localStorage.getItem('theme');
+                const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                
+                if (savedTheme) {
+                    this.setTheme(savedTheme);
+                } else if (systemPrefersDark) {
+                    this.setTheme('dark');
+                } else {
+                    this.setTheme('light');
+                }
+            }
+
+            toggleTheme() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                this.setTheme(newTheme);
+            }
+
+            setTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                
+                // Update icon
+                if (theme === 'dark') {
+                    this.themeIcon.setAttribute('data-lucide', 'moon');
+                } else {
+                    this.themeIcon.setAttribute('data-lucide', 'sun');
+                }
+                
+                // Recreate icons to apply changes
+                lucide.createIcons();
+            }
+            
+            startBlinking() {
+                const blink = () => {
+                    const pupils = document.querySelectorAll('.pupil-3d');
+                    pupils.forEach(pupil => {
+                        pupil.style.transform = 'translate(-50%, -50%) scaleY(0.1)';
+                        setTimeout(() => {
+                            pupil.style.transform = 'translate(-50%, -50%) scaleY(1)';
+                        }, 100);
+                    });
+                };
+                
+                const scheduleNextBlink = () => {
+                    const delay = Math.random() * 3000 + 2000;
+                    this.blinkInterval = setTimeout(() => {
+                        blink();
+                        scheduleNextBlink();
+                    }, delay);
+                };
+                
+                scheduleNextBlink();
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new OptimizedEmotionalCharacter();
+        });
+    </script>
+</body>
+</html>
+

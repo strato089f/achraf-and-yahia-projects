@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achraf and Yahia Projects</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #212121;
+            --bg-secondary: #2f2f2f;
+            --bg-tertiary: #171717;
+            --text-primary: #ececec;
+            --text-secondary: #b4b4b4;
+            --accent-color: #10a37f;
+            --accent-hover: #0d8c6d;
+            --border-color: #4d4d4f;
+            --card-bg: #2f2f2f;
+            --card-hover: #3a3a3a;
+            --shadow-light: rgba(0, 0, 0, 0.3);
+            --shadow-heavy: rgba(0, 0, 0, 0.6);
+            --gradient-primary: linear-gradient(135deg, #10a37f 0%, #0d8c6d 100%);
+            --gradient-secondary: linear-gradient(135deg, #2f2f2f 0%, #3a3a3a 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--bg-primary);
+        }
+
+        .background-animation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(16, 163, 127, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(16, 163, 127, 0.05) 0%, transparent 50%);
+            animation: backgroundPulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes backgroundPulse {
+            0% { opacity: 0.3; }
+            100% { opacity: 0.7; }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 4rem 2rem 2rem;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 2rem;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-primary);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .nav-item:hover::before {
+            left: 0;
+        }
+
+        .nav-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px var(--shadow-light);
+            color: white;
+        }
+
+        /* Cards Container */
+        .cards-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            animation: fadeInUp 1s ease-out both;
+        }
+
+        .card:nth-child(1) { animation-delay: 0.6s; }
+        .card:nth-child(2) { animation-delay: 0.8s; }
+        .card:nth-child(3) { animation-delay: 1s; }
+        .card:nth-child(4) { animation-delay: 1.2s; }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-secondary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px var(--shadow-heavy);
+            border-color: var(--accent-color);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-primary);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover .card-icon {
+            transform: rotate(10deg) scale(1.1);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tag {
+            background: var(--accent-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .card-button {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .card-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 163, 127, 0.3);
+        }
+
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            background: var(--accent-color);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .cards-container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Success message */
+        .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--accent-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .success-message.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <header class="header">
+        <h1>Achraf and Yahia Projects</h1>
+        <p>Explore cutting-edge AI applications and interactive experiences</p>
+    </header>
+
+
+
+    <main class="cards-container">
+        <div class="card" data-category="ai education interactive" data-file="smart_classroom_assistant.html">
+            <div class="card-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <h3 class="card-title">Smart Classroom Assistant</h3>
+            <p class="card-description">
+                Voice-controlled classroom management system with AI-powered features for modern education environments.
+            </p>
+            <div class="card-tags">
+                <span class="tag">Voice Control</span>
+                <span class="tag">Education</span>
+                <span class="tag">AI Assistant</span>
+            </div>
+            <button class="card-button" onclick="openProject('smart_classroom_assistant.html')">
+                Launch Assistant
+            </button>
+        </div>
+
+        <div class="card" data-category="ai interactive" data-file="pokemon_classifier.html">
+            <div class="card-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h3 class="card-title">Pokémon Type Classifier</h3>
+            <p class="card-description">
+                Advanced machine learning model that classifies Pokémon types from images.
+            </p>
+            <div class="card-tags">
+                <span class="tag">TensorFlow</span>
+                <span class="tag">Image Recognition</span>
+                <span class="tag">ML</span>
+            </div>
+            <button class="card-button" onclick="openProject('pokemon_classifier.html')">
+                Try Classifier
+            </button>
+        </div>
+
+        <div class="card" data-category="ai interactive" data-file="chatbot.html">
+            <div class="card-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <h3 class="card-title">AI Chatbot Assistant</h3>
+            <p class="card-description">
+                Intelligent conversational AI with ChatGPT-like interface, created by Achraf and Yahia for seamless interactions.
+            </p>
+            <div class="card-tags">
+                <span class="tag">Chatbot</span>
+                <span class="tag">Conversation</span>
+                <span class="tag">AI</span>
+            </div>
+            <button class="card-button" onclick="openProject('chatbot.html')">
+                Start Chatting
+            </button>
+        </div>
+
+        <div class="card" data-category="ai interactive" data-file="character.html">
+            <div class="card-icon">
+                <i class="fas fa-heart"></i>
+            </div>
+            <h3 class="card-title">Emotional AI Character</h3>
+            <p class="card-description">
+                Interactive AI character with emotional intelligence and personality, featuring advanced behavioral responses.
+            </p>
+            <div class="card-tags">
+                <span class="tag">Emotions</span>
+                <span class="tag">Character AI</span>
+                <span class="tag">Interactive</span>
+            </div>
+            <button class="card-button" onclick="openProject('character.html')">
+                Meet Character
+            </button>
+        </div>
+    </main>
+
+    <div class="success-message" id="successMessage">
+        Project opened successfully!
+    </div>
+
+    <script>
+        // Particle system
+        function createParticles() {
+            const particleCount = 20;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.width = Math.random() * 4 + 2 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.opacity = Math.random() * 0.5 + 0.1;
+                document.body.appendChild(particle);
+            }
+        }
+
+        // Filter functionality
+        /*
+        function initializeFilters() {
+            const filterButtons = document.querySelectorAll(\".nav-item\");
+            const cards = document.querySelectorAll(\".card\");
+
+            filterButtons.forEach(button => {
+                button.addEventListener(\'click\', (e) => {
+                    e.preventDefault();
+                    
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove(\'active\'));
+                    // Add active class to clicked button
+                    button.classList.add(\'active\');
+
+                    const filter = button.dataset.filter;
+                    
+                    cards.forEach(card => {
+                        if (filter === \'all\' || card.dataset.category.includes(filter)) {
+                            card.style.display = \'block\';
+                            card.style.animation = \'fadeInUp 0.6s ease-out\';
+                        } else {
+                            card.style.display = \'none\';
+                        }
+                    });
+                });
+            });
+        }
+        */
+
+        // Project opening functionality
+        function openProject(filename) {
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            // Show loading state
+            button.innerHTML = '<span class="loading"></span> Opening...';
+            button.disabled = true;
+            
+            // Simulate loading delay for better UX
+            setTimeout(() => {
+                // Open the project in a new tab
+                window.open(filename, '_blank');
+                
+                // Show success message
+                showSuccessMessage();
+                
+                // Reset button
+                button.textContent = originalText;
+                button.disabled = false;
+            }, 1000);
+        }
+
+        // Success message
+        function showSuccessMessage() {
+            const message = document.getElementById('successMessage');
+            message.classList.add('show');
+            
+            setTimeout(() => {
+                message.classList.remove('show');
+            }, 3000);
+        }
+
+        // Card hover effects
+        function initializeCardEffects() {
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    card.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        }
+
+        // Smooth scrolling for navigation
+        function initializeSmoothScrolling() {
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Add ripple effect
+                    const ripple = document.createElement('span');
+                    ripple.style.position = 'absolute';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.background = 'rgba(255,255,255,0.3)';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'ripple 0.6s linear';
+                    ripple.style.left = '50%';
+                    ripple.style.top = '50%';
+                    ripple.style.width = '20px';
+                    ripple.style.height = '20px';
+                    ripple.style.marginLeft = '-10px';
+                    ripple.style.marginTop = '-10px';
+                    
+                    item.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+        }
+
+        // Add ripple animation CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            // initializeFilters();
+            initializeCardEffects();
+            initializeSmoothScrolling();
+            
+            // Add entrance animations
+            const elements = document.querySelectorAll('.card, .nav-item');
+            elements.forEach((el, index) => {
+                el.style.animationDelay = (index * 0.1) + 's';
+            });
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.classList.contains('card-button')) {
+                e.target.click();
+            }
+        });
+
+        // Add focus styles for accessibility
+        const focusStyle = document.createElement('style');
+        focusStyle.textContent = `
+            .card-button:focus,
+            .nav-item:focus {
+                outline: 2px solid var(--accent-color);
+                outline-offset: 2px;
+            }
+        `;
+        document.head.appendChild(focusStyle);
+    </script>
+</body>
+</html>
+

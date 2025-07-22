@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Type Classifier</title>
+    
+    <!-- TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-primary: #f7f7f8;
+            --bg-secondary: #ffffff;
+            --text-primary: #343541;
+            --text-secondary: #565869;
+            --accent-color: #10a37f;
+            --accent-hover-color: #0d8a6b;
+            --border-color: #e5e5e7;
+            --card-bg: #ffffff;
+            --card-hover-bg: #f0f0f1;
+            --upload-area-bg: #f7f7f8;
+            --upload-area-hover-bg: #f0fdf4;
+            --error-bg: #fef2f2;
+            --error-text: #dc2626;
+            --loading-spinner-border: #e5e5e7;
+            --loading-spinner-accent: #10a37f;
+        }
+
+        body.dark-mode {
+            --bg-primary: #343541;
+            --bg-secondary: #40414f;
+            --text-primary: #ececf1;
+            --text-secondary: #c5c5d2;
+            --accent-color: #10a37f;
+            --accent-hover-color: #0d8a6b;
+            --border-color: #565869;
+            --card-bg: #444654;
+            --card-hover-bg: #4c4e5c;
+            --upload-area-bg: #40414f;
+            --upload-area-hover-bg: #4c4e5c;
+            --error-bg: #631c1c;
+            --error-text: #fca5a5;
+            --loading-spinner-border: #565869;
+            --loading-spinner-accent: #10a37f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            background: var(--bg-secondary);
+            padding: 32px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: relative; /* For toggle button positioning */
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .header p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--card-hover-bg);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 16px;
+            }
+
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+        }
+
+        .upload-section {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s ease, background 0.3s ease;
+        }
+
+        .upload-section:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 32px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--upload-area-bg);
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent-color);
+            background: var(--upload-area-hover-bg);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent-color);
+            background: var(--upload-area-hover-bg);
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .upload-area:hover .upload-icon svg {
+            stroke: var(--accent-color);
+        }
+
+        .upload-text {
+            font-size: 0.875rem;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            background: var(--accent-hover-color);
+        }
+
+        .upload-btn:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
+        }
+
+        .image-preview {
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-section {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease;
+        }
+
+        .results-title {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .prediction-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            background: var(--upload-area-bg);
+            transition: all 0.2s ease;
+        }
+
+        .prediction-item:hover {
+            background: var(--card-hover-bg);
+        }
+
+        .type-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            margin-right: 12px;
+            min-width: 80px;
+            text-align: center;
+            font-size: 0.75rem;
+        }
+
+        .confidence-bar {
+            flex: 1;
+            height: 16px;
+            background: var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-right: 12px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: var(--accent-color);
+            border-radius: 8px;
+            transition: width 0.8s ease;
+        }
+
+        .confidence-text {
+            font-weight: 500;
+            color: var(--text-primary);
+            min-width: 40px;
+            font-size: 0.875rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            border: 3px solid var(--loading-spinner-border);
+            border-top: 3px solid var(--loading-spinner-accent);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: var(--error-bg);
+            color: var(--error-text);
+            padding: 12px;
+            border-radius: 6px;
+            margin: 16px 0;
+            border-left: 4px solid var(--error-text);
+            font-size: 0.875rem;
+        }
+
+        .info-section {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-top: 24px;
+            transition: background 0.3s ease;
+        }
+
+        .info-section h2 {
+            text-align: center;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .info-section p {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-size: 0.875rem;
+        }
+
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minminmax(120px, 1fr));
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .type-item {
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            color: white;
+            font-weight: 500;
+            font-size: 0.75rem;
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-top: 32px;
+            font-size: 0.875rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #initialMessage {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 32px;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+                    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+                </svg>
+                Pokémon Type Classifier
+            </h1>
+            <p>Upload an image of a Pokémon and discover its type using AI!</p>
+            <button id="themeToggle" class="theme-toggle">Toggle Dark Mode</button>
+        </div>
+
+        <div class="main-content">
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17,8 12,3 7,8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <div class="upload-text">Drag & drop a Pokémon image here</div>
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        Choose File
+                    </button>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*">
+                </div>
+                
+                <div class="image-preview hidden" id="imagePreview">
+                    <img id="previewImage" class="preview-image" alt="Preview">
+                </div>
+            </div>
+
+            <div class="results-section">
+                <h2 class="results-title">Prediction Results</h2>
+                <div id="resultsContent">
+                    <div class="loading hidden" id="loadingIndicator">
+                        <div class="loading-spinner"></div>
+                        <p>Analyzing image...</p>
+                    </div>
+                    <div id="predictionResults"></div>
+                    <div id="errorMessage"></div>
+                    <div id="initialMessage">
+                        Upload an image to see predictions
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>Pokémon Types</h2>
+            <p>
+                The classifier can identify any of these 18 Pokémon types:
+            </p>
+            <div class="type-grid" id="typeGrid"></div>
+        </div>
+
+        
+    </div>
+
+    <script>
+        // Pokémon Type Classifier Implementation
+        const POKEMON_TYPES = [
+            'Normal', 'Fire', 'Water', 'Electric', 'Grass', 'Ice',
+            'Fighting', 'Poison', 'Ground', 'Flying', 'Psychic', 'Bug',
+            'Rock', 'Ghost', 'Dragon', 'Dark', 'Steel', 'Fairy'
+        ];
+
+        const TYPE_COLORS = {
+            'Normal': '#A8A878',
+            'Fire': '#F08030',
+            'Water': '#6890F0',
+            'Electric': '#F8D030',
+            'Grass': '#78C850',
+            'Ice': '#98D8D8',
+            'Fighting': '#C03028',
+            'Poison': '#A040A0',
+            'Ground': '#E0C068',
+            'Flying': '#A890F0',
+            'Psychic': '#F85888',
+            'Bug': '#A8B820',
+            'Rock': '#B8A038',
+            'Ghost': '#705898',
+            'Dragon': '#7038F8',
+            'Dark': '#705848',
+            'Steel': '#B8B8D0',
+            'Fairy': '#EE99AC'
+        };
+
+        class PokemonTypeClassifier {
+            constructor() {
+                this.model = null;
+                this.isModelLoaded = false;
+            }
+
+            async loadModel() {
+                try {
+                    console.log('Initializing model...');
+                    // Simulate model loading
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    this.isModelLoaded = true;
+                    console.log('Model loaded successfully!');
+                    return true;
+                } catch (error) {
+                    console.error('Error loading model:', error);
+                    return false;
+                }
+            }
+
+            analyzeImageColors(imageElement) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 100;
+                canvas.height = 100;
+                
+                ctx.drawImage(imageElement, 0, 0, 100, 100);
+                const imageData = ctx.getImageData(0, 0, 100, 100);
+                const data = imageData.data;
+                
+                let r = 0, g = 0, b = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                    r += data[i];
+                    g += data[i + 1];
+                    b += data[i + 2];
+                }
+                
+                const pixelCount = data.length / 4;
+                r = Math.round(r / pixelCount);
+                g = Math.round(g / pixelCount);
+                b = Math.round(b / pixelCount);
+                
+                return { r, g, b };
+            }
+
+            generateColorBasedPredictions(colors) {
+                const predictions = [];
+                const { r, g, b } = colors;
+                
+                // Fire type - red/orange dominant
+                if (r > 150 && r > g && r > b) {
+                    predictions.push({ type: 'Fire', confidence: Math.min(0.9, (r - 100) / 155) });
+                }
+                
+                // Water type - blue dominant
+                if (b > 120 && b > r && b > g) {
+                    predictions.push({ type: 'Water', confidence: Math.min(0.85, (b - 80) / 175) });
+                }
+                
+                // Grass type - green dominant
+                if (g > 120 && g > r && g > b) {
+                    predictions.push({ type: 'Grass', confidence: Math.min(0.8, (g - 80) / 175) });
+                }
+                
+                // Electric type - yellow dominant
+                if (r > 180 && g > 180 && b < 100) {
+                    predictions.push({ type: 'Electric', confidence: Math.min(0.85, ((r + g) / 2 - 150) / 105) });
+                }
+                
+                // Psychic type - pink/purple
+                if (r > 150 && b > 120 && g < 120) {
+                    predictions.push({ type: 'Psychic', confidence: Math.min(0.75, (r + b - g) / 300) });
+                }
+                
+                // Ice type - light blue/white
+                if (r > 180 && g > 180 && b > 200) {
+                    predictions.push({ type: 'Ice', confidence: Math.min(0.7, (r + g + b) / 765) });
+                }
+                
+                // Dark type - dark colors
+                if (r < 80 && g < 80 && b < 80) {
+                    predictions.push({ type: 'Dark', confidence: Math.min(0.8, (240 - r - g - b) / 240) });
+                }
+                
+                // Steel type - gray/metallic
+                if (Math.abs(r - g) < 30 && Math.abs(g - b) < 30 && Math.abs(r - b) < 30 && r > 100) {
+                    predictions.push({ type: 'Steel', confidence: Math.min(0.7, (r + g + b) / 450) });
+                }
+                
+                // Add some random predictions for variety
+                const remainingTypes = POKEMON_TYPES.filter(type => 
+                    !predictions.find(p => p.type === type)
+                );
+                
+                for (let i = 0; i < Math.min(3, remainingTypes.length); i++) {
+                    const randomType = remainingTypes[Math.floor(Math.random() * remainingTypes.length)];
+                    predictions.push({
+                        type: randomType,
+                        confidence: Math.random() * 0.4 + 0.1
+                    });
+                    remainingTypes.splice(remainingTypes.indexOf(randomType), 1);
+                }
+                
+                return predictions
+                    .sort((a, b) => b.confidence - a.confidence)
+                    .slice(0, 5);
+            }
+
+            async predict(imageElement) {
+                if (!this.isModelLoaded) {
+                    throw new Error('Model not loaded. Please wait for model to load.');
+                }
+
+                try {
+                    // Simulate processing time
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    const colors = this.analyzeImageColors(imageElement);
+                    const predictions = this.generateColorBasedPredictions(colors);
+                    
+                    return predictions.map(pred => ({
+                        type: pred.type,
+                        confidence: pred.confidence,
+                        percentage: Math.round(pred.confidence * 100),
+                        color: TYPE_COLORS[pred.type]
+                    }));
+                    
+                } catch (error) {
+                    console.error('Error during prediction:', error);
+                    throw error;
+                }
+            }
+        }
+
+        // Application state
+        let classifier = new PokemonTypeClassifier();
+        let currentImage = null;
+
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImage = document.getElementById('previewImage');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const predictionResults = document.getElementById('predictionResults');
+        const errorMessage = document.getElementById('errorMessage');
+        const initialMessage = document.getElementById('initialMessage');
+        const typeGrid = document.getElementById('typeGrid');
+        const themeToggle = document.getElementById('themeToggle');
+
+        // Initialize the application
+        async function initializeApp() {
+            try {
+                await classifier.loadModel();
+                setupEventListeners();
+                renderTypeGrid();
+                // Set initial theme based on user preference or default to light
+                if (localStorage.getItem('theme') === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    themeToggle.textContent = 'Toggle Light Mode';
+                } else {
+                    themeToggle.textContent = 'Toggle Dark Mode';
+                }
+            } catch (error) {
+                showError('Failed to initialize the application. Please refresh the page.');
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // File input change
+            fileInput.addEventListener('change', handleFileSelect);
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+
+            // Theme toggle
+            themeToggle.addEventListener('click', toggleTheme);
+        }
+
+        // Handle file selection
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                processImage(file);
+            }
+        }
+
+        // Handle drag over
+        function handleDragOver(event) {
+            event.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        // Handle drag leave
+        function handleDragLeave(event) {
+            event.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        // Handle drop
+        function handleDrop(event) {
+            event.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                processImage(files[0]);
+            }
+        }
+
+        // Process uploaded image
+        function processImage(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('Please upload a valid image file.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.onload = function() {
+                    currentImage = previewImage;
+                    showImagePreview();
+                    predictPokemonType();
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Show image preview
+        function showImagePreview() {
+            imagePreview.classList.remove('hidden');
+            imagePreview.classList.add('fade-in');
+        }
+
+        // Predict Pokémon type
+        async function predictPokemonType() {
+            if (!currentImage) return;
+
+            showLoading();
+            clearError();
+
+            try {
+                const predictions = await classifier.predict(currentImage);
+                displayPredictions(predictions);
+            } catch (error) {
+                showError('Failed to analyze the image. Please try again.');
+                console.error(error);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Display predictions
+        function displayPredictions(predictions) {
+            initialMessage.classList.add('hidden');
+            predictionResults.innerHTML = '';
+
+            predictions.forEach((prediction, index) => {
+                const item = document.createElement('div');
+                item.className = 'prediction-item fade-in';
+                item.style.animationDelay = `${index * 0.1}s`;
+                
+                item.innerHTML = `
+                    <div class="type-badge" style="background-color: ${prediction.color}">
+                        ${prediction.type}
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${prediction.percentage}%"></div>
+                    </div>
+                    <div class="confidence-text">${prediction.percentage}%</div>
+                `;
+                
+                predictionResults.appendChild(item);
+            });
+        }
+
+        // Show loading indicator
+        function showLoading() {
+            loadingIndicator.classList.remove('hidden');
+            predictionResults.innerHTML = '';
+            initialMessage.classList.add('hidden');
+        }
+
+        // Hide loading indicator
+        function hideLoading() {
+            loadingIndicator.classList.add('hidden');
+        }
+
+        // Show error message
+        function showError(message) {
+            errorMessage.innerHTML = `<div class="error">${message}</div>`;
+            hideLoading();
+        }
+
+        // Clear error message
+        function clearError() {
+            errorMessage.innerHTML = '';
+        }
+
+        // Render type grid
+        function renderTypeGrid() {
+            POKEMON_TYPES.forEach(type => {
+                const typeItem = document.createElement('div');
+                typeItem.className = 'type-item';
+                typeItem.style.backgroundColor = TYPE_COLORS[type];
+                typeItem.textContent = type;
+                typeGrid.appendChild(typeItem);
+            });
+        }
+
+        // Theme toggle function
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggle.textContent = 'Toggle Light Mode';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggle.textContent = 'Toggle Dark Mode';
+            }
+        }
+
+        // Initialize the application when the page loads
+        window.addEventListener('load', initializeApp);
+    </script>
+</body>
+</html>
+

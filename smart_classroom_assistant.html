@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #f7f7f8;
+            --bg-secondary: #ffffff;
+            --text-primary: #343541;
+            --text-secondary: #565869;
+            --accent-color: #10a37f;
+            --accent-hover-color: #0d8a6b;
+            --border-color: #e5e5e7;
+            --card-bg: #ffffff;
+            --card-hover-bg: #f0f0f1;
+            --error-bg: #fef2f2;
+            --error-text: #dc2626;
+            --status-on-bg: #dcfce7;
+            --status-on-text: #166534;
+            --status-off-bg: #fef2f2;
+            --status-off-text: #dc2626;
+            --voice-control-bg: #f7f7f8;
+            --voice-control-border: #e5e5e7;
+            --voice-btn-shadow: rgba(16, 163, 127, 0.3);
+            --command-item-bg: #ffffff;
+            --command-item-border: #10a37f;
+        }
+
+        body.dark-mode {
+            --bg-primary: #343541;
+            --bg-secondary: #40414f;
+            --text-primary: #ececf1;
+            --text-secondary: #c5c5d2;
+            --accent-color: #10a37f;
+            --accent-hover-color: #0d8a6b;
+            --border-color: #565869;
+            --card-bg: #444654;
+            --card-hover-bg: #4c4e5c;
+            --error-bg: #631c1c;
+            --error-text: #fca5a5;
+            --status-on-bg: #166534;
+            --status-on-text: #dcfce7;
+            --status-off-bg: #dc2626;
+            --status-off-text: #fef2f2;
+            --voice-control-bg: #40414f;
+            --voice-control-border: #565869;
+            --voice-btn-shadow: rgba(16, 163, 127, 0.5);
+            --command-item-bg: #444654;
+            --command-item-border: #10a37f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            padding: 24px;
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            position: relative; /* For toggle button positioning */
+        }
+
+        .header h1 {
+            color: var(--text-primary);
+            font-size: 2rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--card-hover-bg);
+        }
+
+        .voice-control {
+            text-align: center;
+            margin-bottom: 32px;
+            padding: 24px;
+            background: var(--voice-control-bg);
+            border-radius: 8px;
+            border: 1px solid var(--voice-control-border);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .voice-btn {
+            background: var(--accent-color);
+            border: none;
+            border-radius: 50%;
+            width: 64px;
+            height: 64px;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 16px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px var(--voice-btn-shadow);
+        }
+
+        .voice-btn:hover {
+            background: var(--accent-hover-color);
+            transform: scale(1.05);
+        }
+
+        .voice-btn:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
+        }
+
+        .voice-btn.listening {
+            background: #dc2626;
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .status {
+            margin: 16px 0;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .devices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .device-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .device-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .device-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .device-icon {
+            font-size: 1.25rem;
+            margin-right: 12px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .device-info h3 {
+            color: var(--text-primary);
+            font-size: 1.125rem;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .device-status {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .status-on {
+            background: var(--status-on-bg);
+            color: var(--status-on-text);
+        }
+
+        .status-off {
+            background: var(--status-off-bg);
+            color: var(--status-off-text);
+        }
+
+        .device-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .control-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            flex: 1;
+            min-width: 80px;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover-color);
+        }
+
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--card-hover-bg);
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .control-btn:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
+        }
+
+        .slider-container {
+            margin: 12px 0;
+        }
+
+        .slider {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border-color);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            border: none;
+        }
+
+        .device-info-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .commands-help {
+            background: var(--voice-control-bg);
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 24px;
+            border: 1px solid var(--voice-control-border);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .commands-help h3 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .command-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+        }
+
+        .command-item {
+            background: var(--command-item-bg);
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid var(--command-item-border);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease, border-left-color 0.3s ease;
+        }
+
+        .command-item strong {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.875rem;
+        }
+
+        .command-item span {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .devices-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .command-list {
+                grid-template-columns: 1fr;
+            }
+
+            body {
+                padding: 16px;
+            }
+
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+        }
+
+        #lastCommand {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-graduation-cap"></i> Smart Classroom Assistant</h1>
+            <p>Control your classroom devices with voice commands</p>
+            <button id="themeToggle" class="theme-toggle">Toggle Dark Mode</button>
+        </div>
+
+        <div class="voice-control">
+            <button class="voice-btn" id="voiceBtn"><i class="fas fa-microphone"></i></button>
+            <div class="status" id="voiceStatus">Click the microphone to start listening</div>
+            <div id="lastCommand"></div>
+        </div>
+
+        <div class="devices-grid">
+            <!-- Lights Control -->
+            <div class="device-card">
+                <div class="device-header">
+                    <div class="device-icon"><i class="fas fa-lightbulb"></i></div>
+                    <div class="device-info">
+                        <h3>Classroom Lights</h3>
+                        <span class="device-status status-off" id="lightsStatus">OFF</span>
+                    </div>
+                </div>
+                <div class="device-controls">
+                    <button class="control-btn btn-primary" onclick="toggleLights()">Toggle</button>
+                    <button class="control-btn btn-secondary" onclick="dimLights()">Dim</button>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="100" class="slider" id="lightsSlider" onchange="setLightsBrightness(this.value)">
+                    <div class="device-info-text">Brightness: <span id="lightsValue">100</span>%</div>
+                </div>
+            </div>
+
+            <!-- Projector Control -->
+            <div class="device-card">
+                <div class="device-header">
+                    <div class="device-icon"><i class="fas fa-video"></i></div>
+                    <div class="device-info">
+                        <h3>Projector</h3>
+                        <span class="device-status status-off" id="projectorStatus">OFF</span>
+                    </div>
+                </div>
+                <div class="device-controls">
+                    <button class="control-btn btn-primary" onclick="toggleProjector()">Toggle</button>
+                    <button class="control-btn btn-secondary" onclick="switchInput()">Switch Input</button>
+                </div>
+                <div class="device-info-text">Current Input: <span id="projectorInput">HDMI 1</span></div>
+            </div>
+
+            <!-- Air Conditioning -->
+            <div class="device-card">
+                <div class="device-header">
+                    <div class="device-icon"><i class="fas fa-snowflake"></i></div>
+                    <div class="device-info">
+                        <h3>Air Conditioning</h3>
+                        <span class="device-status status-off" id="acStatus">OFF</span>
+                    </div>
+                </div>
+                <div class="device-controls">
+                    <button class="control-btn btn-primary" onclick="toggleAC()">Toggle</button>
+                    <button class="control-btn btn-secondary" onclick="adjustTemp(-1)">Temp -</button>
+                    <button class="control-btn btn-secondary" onclick="adjustTemp(1)">Temp +</button>
+                </div>
+                <div class="device-info-text">Temperature: <span id="acTemp">22</span>°C</div>
+            </div>
+
+            <!-- Window Blinds -->
+            <div class="device-card">
+                <div class="device-header">
+                    <div class="device-icon"><i class="fas fa-window-maximize"></i></div>
+                    <div class="device-info">
+                        <h3>Window Blinds</h3>
+                        <span class="device-status status-off" id="blindsStatus">CLOSED</span>
+                    </div>
+                </div>
+                <div class="device-controls">
+                    <button class="control-btn btn-primary" onclick="toggleBlinds()">Toggle</button>
+                    <button class="control-btn btn-secondary" onclick="setBlinds(50)">Half Open</button>
+                </div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="0" class="slider" id="blindsSlider" onchange="setBlinds(this.value)">
+                    <div class="device-info-text">Position: <span id="blindsValue">0</span>% Open</div>
+                </div>
+            </div>
+
+            <!-- Audio System -->
+            <div class="device-card">
+                <div class="device-header">
+                    <div class="device-icon"><i class="fas fa-volume-up"></i></div>
+                    <div class="device-info">
+                        <h3>Audio System</h3>
+                        <span class="device-status status-off" id="audioStatus">OFF</span>
+                    </div>
+                </div>
+                <div class="device-controls">
+                    <button class="control-btn btn-primary" onclick="toggleAudio()">Toggle</button>
+                    <button class="control-btn btn-secondary" onclick="adjustVolume(-10)">Vol -</button>
+                    <button class="control-btn btn-secondary" onclick="adjustVolume(10)">Vol +</button>
+                </div>
+                <div class="device-info-text">Volume: <span id="audioVolume">50</span>%</div>
+            </div>
+
+            <!-- Smart Board -->
+            <div class="device-card">
+                <div class="device-header">
+                    <div class="device-icon"><i class="fas fa-chalkboard"></i></div>
+                    <div class="device-info">
+                        <h3>Smart Board</h3>
+                        <span class="device-status status-off" id="boardStatus">OFF</span>
+                    </div>
+                </div>
+                <div class="device-controls">
+                    <button class="control-btn btn-primary" onclick="toggleBoard()">Toggle</button>
+                    <button class="control-btn btn-secondary" onclick="clearBoard()">Clear</button>
+                    <button class="control-btn btn-secondary" onclick="saveBoard()">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="commands-help">
+            <h3><i class="fas fa-comments"></i> Voice Commands</h3>
+            <div class="command-list">
+                <div class="command-item">
+                    <strong>"Turn on/off lights"</strong>
+                    <span>Controls classroom lighting</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Dim lights"</strong>
+                    <span>Sets lights to 50% brightness</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Turn on/off projector"</strong>
+                    <span>Controls projector power</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Switch input"</strong>
+                    <span>Changes projector input source</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Turn on/off AC"</strong>
+                    <span>Controls air conditioning</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Increase/decrease temperature"</strong>
+                    <span>Adjusts AC temperature</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Open/close blinds"</strong>
+                    <span>Controls window blinds</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Turn on/off audio"</strong>
+                    <span>Controls audio system</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Volume up/down"</strong>
+                    <span>Adjusts audio volume</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Turn on/off board"</strong>
+                    <span>Controls smart board</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Clear board"</strong>
+                    <span>Clears smart board content</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Emergency shutdown"</strong>
+                    <span>Turns off all devices</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Open YouTube"</strong>
+                    <span>Opens YouTube in new tab</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Open Google"</strong>
+                    <span>Opens Google search</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Open Wikipedia"</strong>
+                    <span>Opens Wikipedia</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Open Maps"</strong>
+                    <span>Opens Google Maps</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Open News"</strong>
+                    <span>Opens Google News</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Open Weather"</strong>
+                    <span>Opens weather website</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Open Calculator"</strong>
+                    <span>Opens Google calculator</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Open Translate"</strong>
+                    <span>Opens Google Translate</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Open Calendar"</strong>
+                    <span>Opens Google Calendar</span>
+                </div>
+                <div class="command-item">
+                    <strong>"Open Email"</strong>
+                    <span>Opens Gmail</span>
+                }
+                <div class="command-item">
+                    <strong>"Search for [query]"</strong>
+                    <span>Searches Google for your query</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Device states
+        let devices = {
+            lights: { on: false, brightness: 100 },
+            projector: { on: false, input: 'HDMI 1' },
+            ac: { on: false, temperature: 22 },
+            blinds: { position: 0 },
+            audio: { on: false, volume: 50 },
+            board: { on: false }
+        };
+
+        // Voice recognition setup
+        let recognition;
+        let isListening = false;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isListening = true;
+                document.getElementById('voiceBtn').classList.add('listening');
+                document.getElementById('voiceStatus').textContent = 'Listening... Speak now!';
+            };
+
+            recognition.onresult = function(event) {
+                const command = event.results[0][0].transcript.toLowerCase();
+                document.getElementById('lastCommand').textContent = `Last command: "${command}"`;
+                processVoiceCommand(command);
+            };
+
+            recognition.onerror = function(event) {
+                document.getElementById('voiceStatus').textContent = `Error: ${event.error}`;
+                stopListening();
+            };
+
+            recognition.onend = function() {
+                stopListening();
+            };
+        } else {
+            document.getElementById('voiceStatus').textContent = 'Voice recognition not supported in this browser';
+        }
+
+        function startListening() {
+            if (recognition && !isListening) {
+                recognition.start();
+            }
+        }
+
+        function stopListening() {
+            isListening = false;
+            document.getElementById('voiceBtn').classList.remove('listening');
+            document.getElementById('voiceStatus').textContent = 'Click the microphone to start listening';
+        }
+
+        document.getElementById('voiceBtn').addEventListener('click', function() {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                startListening();
+            }
+        });
+
+        // Voice command processing
+        function processVoiceCommand(command) {
+            document.getElementById('voiceStatus').textContent = `Processing: "${command}"`;
+            
+            // Lights commands
+            if (command.includes('turn on') && command.includes('light')) {
+                turnOnLights();
+            } else if (command.includes('turn off') && command.includes('light')) {
+                turnOffLights();
+            } else if (command.includes('dim') && command.includes('light')) {
+                dimLights();
+            }
+            
+            // Projector commands
+            else if (command.includes('turn on') && command.includes('projector')) {
+                turnOnProjector();
+            } else if (command.includes('turn off') && command.includes('projector')) {
+                turnOffProjector();
+            } else if (command.includes('switch input')) {
+                switchInput();
+            }
+            
+            // AC commands
+            else if (command.includes('turn on') && (command.includes('ac') || command.includes('air'))) {
+                turnOnAC();
+            } else if (command.includes('turn off') && (command.includes('ac') || command.includes('air'))) {
+                turnOffAC();
+            }
+            else if (command.includes('increase temperature') || command.includes('temperature up')) {
+                adjustTemp(1);
+            } else if (command.includes('decrease temperature') || command.includes('temperature down')) {
+                adjustTemp(-1);
+            }
+            
+            // Blinds commands
+            else if (command.includes('open') && command.includes('blind')) {
+                setBlinds(100);
+            } else if (command.includes('close') && command.includes('blind')) {
+                setBlinds(0);
+            }
+            
+            // Audio commands
+            else if (command.includes('turn on') && command.includes('audio')) {
+                turnOnAudio();
+            } else if (command.includes('turn off') && command.includes('audio')) {
+                turnOffAudio();
+            } else if (command.includes('volume up')) {
+                adjustVolume(10);
+            } else if (command.includes('volume down')) {
+                adjustVolume(-10);
+            }
+            
+            // Board commands
+            else if (command.includes('turn on') && command.includes('board')) {
+                turnOnBoard();
+            } else if (command.includes('turn off') && command.includes('board')) {
+                turnOffBoard();
+            } else if (command.includes('clear') && command.includes('board')) {
+                clearBoard();
+            }
+            
+            // Emergency shutdown
+            else if (command.includes('emergency') && command.includes('shutdown')) {
+                emergencyShutdown();
+            }
+            
+            // Application opening commands
+            else if (command.includes('open youtube') || command.includes('youtube')) {
+                openApplication('YouTube', 'https://www.youtube.com');
+            } else if (command.includes('open google') || command.includes('google')) {
+                openApplication('Google', 'https://www.google.com');
+            } else if (command.includes('open wikipedia') || command.includes('wikipedia')) {
+                openApplication('Wikipedia', 'https://www.wikipedia.org');
+            } else if (command.includes('open maps') || command.includes('google maps')) {
+                openApplication('Google Maps', 'https://maps.google.com');
+            } else if (command.includes('open news') || command.includes('google news')) {
+                openApplication('Google News', 'https://news.google.com');
+            } else if (command.includes('open weather') || command.includes('weather')) {
+                openApplication('Weather', 'https://weather.com');
+            } else if (command.includes('open calculator') || command.includes('calculator')) {
+                openApplication('Calculator', 'https://www.google.com/search?q=calculator');
+            } else if (command.includes('open translate') || command.includes('google translate')) {
+                openApplication('Google Translate', 'https://translate.google.com');
+            } else if (command.includes('open calendar') || command.includes('google calendar')) {
+                openApplication('Google Calendar', 'https://calendar.google.com');
+            } else if (command.includes('open email') || command.includes('gmail')) {
+                openApplication('Gmail', 'https://mail.google.com');
+            }
+            
+            // Search command
+            else if (command.includes('search for') || command.includes('search')) {
+                const searchQuery = extractSearchQuery(command);
+                if (searchQuery) {
+                    performSearch(searchQuery);
+                } else {
+                    document.getElementById('voiceStatus').textContent = 'Please specify what to search for. Say "search for [your query]"';
+                }
+            }
+            
+            else {
+                document.getElementById('voiceStatus').textContent = 'Command not recognized. Try again!';
+            }
+        }
+
+        // Helper functions for new commands
+        function openApplication(appName, url) {
+            window.open(url, '_blank');
+            document.getElementById('voiceStatus').textContent = `Opening ${appName}...`;
+        }
+
+        function extractSearchQuery(command) {
+            // Extract search query from commands like "search for cats" or "search cats"
+            let query = '';
+            if (command.includes('search for ')) {
+                query = command.split('search for ')[1];
+            } else if (command.includes('search ')) {
+                query = command.split('search ')[1];
+            }
+            return query.trim();
+        }
+
+        function performSearch(query) {
+            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            window.open(searchUrl, '_blank');
+            document.getElementById('voiceStatus').textContent = `Searching for "${query}"...`;
+        }
+
+        // Device control functions
+        function toggleLights() {
+            devices.lights.on = !devices.lights.on;
+            updateLightsDisplay();
+        }
+
+        function turnOnLights() {
+            devices.lights.on = true;
+            updateLightsDisplay();
+        }
+
+        function turnOffLights() {
+            devices.lights.on = false;
+            updateLightsDisplay();
+        }
+
+        function dimLights() {
+            devices.lights.on = true;
+            devices.lights.brightness = 50;
+            document.getElementById('lightsSlider').value = 50;
+            updateLightsDisplay();
+        }
+
+        function setLightsBrightness(value) {
+            devices.lights.brightness = value;
+            document.getElementById('lightsValue').textContent = value;
+            if (value > 0) {
+                devices.lights.on = true;
+            }
+            updateLightsDisplay();
+        }
+
+        function updateLightsDisplay() {
+            const status = document.getElementById('lightsStatus');
+            status.textContent = devices.lights.on ? 'ON' : 'OFF';
+            status.className = devices.lights.on ? 'device-status status-on' : 'device-status status-off';
+            document.getElementById('lightsValue').textContent = devices.lights.brightness;
+        }
+
+        function toggleProjector() {
+            devices.projector.on = !devices.projector.on;
+            updateProjectorDisplay();
+        }
+
+        function turnOnProjector() {
+            devices.projector.on = true;
+            updateProjectorDisplay();
+        }
+
+        function turnOffProjector() {
+            devices.projector.on = false;
+            updateProjectorDisplay();
+        }
+
+        function switchInput() {
+            const inputs = ['HDMI 1', 'HDMI 2', 'VGA', 'USB-C'];
+            const currentIndex = inputs.indexOf(devices.projector.input);
+            devices.projector.input = inputs[(currentIndex + 1) % inputs.length];
+            document.getElementById('projectorInput').textContent = devices.projector.input;
+        }
+
+        function updateProjectorDisplay() {
+            const status = document.getElementById('projectorStatus');
+            status.textContent = devices.projector.on ? 'ON' : 'OFF';
+            status.className = devices.projector.on ? 'device-status status-on' : 'device-status status-off';
+        }
+
+        function toggleAC() {
+            devices.ac.on = !devices.ac.on;
+            updateACDisplay();
+        }
+
+        function turnOnAC() {
+            devices.ac.on = true;
+            updateACDisplay();
+        }
+
+        function turnOffAC() {
+            devices.ac.on = false;
+            updateACDisplay();
+        }
+
+        function adjustTemp(change) {
+            devices.ac.temperature = Math.max(16, Math.min(30, devices.ac.temperature + change));
+            document.getElementById('acTemp').textContent = devices.ac.temperature;
+        }
+
+        function updateACDisplay() {
+            const status = document.getElementById('acStatus');
+            status.textContent = devices.ac.on ? 'ON' : 'OFF';
+            status.className = devices.ac.on ? 'device-status status-on' : 'device-status status-off';
+        }
+
+        function toggleBlinds() {
+            devices.blinds.position = devices.blinds.position === 0 ? 100 : 0;
+            setBlinds(devices.blinds.position);
+        }
+
+        function setBlinds(position) {
+            devices.blinds.position = position;
+            document.getElementById('blindsSlider').value = position;
+            document.getElementById('blindsValue').textContent = position;
+            const status = document.getElementById('blindsStatus');
+            if (position === 0) {
+                status.textContent = 'CLOSED';
+                status.className = 'device-status status-off';
+            } else if (position === 100) {
+                status.textContent = 'OPEN';
+                status.className = 'device-status status-on';
+            } else {
+                status.textContent = 'PARTIAL';
+                status.className = 'device-status status-on';
+            }
+        }
+
+        function toggleAudio() {
+            devices.audio.on = !devices.audio.on;
+            updateAudioDisplay();
+        }
+
+        function turnOnAudio() {
+            devices.audio.on = true;
+            updateAudioDisplay();
+        }
+
+        function turnOffAudio() {
+            devices.audio.on = false;
+            updateAudioDisplay();
+        }
+
+        function adjustVolume(change) {
+            devices.audio.volume = Math.max(0, Math.min(100, devices.audio.volume + change));
+            document.getElementById('audioVolume').textContent = devices.audio.volume;
+        }
+
+        function updateAudioDisplay() {
+            const status = document.getElementById('audioStatus');
+            status.textContent = devices.audio.on ? 'ON' : 'OFF';
+            status.className = devices.audio.on ? 'device-status status-on' : 'device-status status-off';
+        }
+
+        function toggleBoard() {
+            devices.board.on = !devices.board.on;
+            updateBoardDisplay();
+        }
+
+        function turnOnBoard() {
+            devices.board.on = true;
+            updateBoardDisplay();
+        }
+
+        function turnOffBoard() {
+            devices.board.on = false;
+            updateBoardDisplay();
+        }
+
+        function clearBoard() {
+            if (devices.board.on) {
+                alert('Smart board cleared!');
+            } else {
+                alert('Please turn on the smart board first.');
+            }
+        }
+
+        function saveBoard() {
+            if (devices.board.on) {
+                alert('Smart board content saved!');
+            } else {
+                alert('Please turn on the smart board first.');
+            }
+        }
+
+        function updateBoardDisplay() {
+            const status = document.getElementById('boardStatus');
+            status.textContent = devices.board.on ? 'ON' : 'OFF';
+            status.className = devices.board.on ? 'device-status status-on' : 'device-status status-off';
+        }
+
+        function emergencyShutdown() {
+            devices.lights.on = false;
+            devices.projector.on = false;
+            devices.ac.on = false;
+            devices.audio.on = false;
+            devices.board.on = false;
+            
+            updateLightsDisplay();
+            updateProjectorDisplay();
+            updateACDisplay();
+            updateAudioDisplay();
+            updateBoardDisplay();
+            
+            alert('Emergency shutdown completed! All devices turned off.');
+        }
+
+        // Theme toggle function
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                document.getElementById('themeToggle').textContent = 'Toggle Light Mode';
+            } else {
+                localStorage.setItem('theme', 'light');
+                document.getElementById('themeToggle').textContent = 'Toggle Dark Mode';
+            }
+        }
+
+        // Initialize display
+        function initializeApp() {
+            // Set initial theme based on user preference or default to light
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeToggle').textContent = 'Toggle Light Mode';
+            } else {
+                document.getElementById('themeToggle').textContent = 'Toggle Dark Mode';
+            }
+            updateLightsDisplay();
+            updateProjectorDisplay();
+            updateACDisplay();
+            updateAudioDisplay();
+            updateBoardDisplay();
+        }
+
+        // Add event listener for theme toggle button
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        });
+
+    </script>
+</body>
+</html>
+
